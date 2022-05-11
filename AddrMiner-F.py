@@ -26,7 +26,7 @@ def generateTarget(PD, bgp, kheap, budget=1e6):
 
 def Start():
     """
-    sudo python3 AddrMiner-F.py --prefix=2a01:7c8:d000::/36 --output=result --budget=10000 --IPv6=2001:da8:ff:212::10:3
+    sudo python3 AddrMiner-F.py --prefix=2a01:7c8:d000::/36 --output=result --budget=10000 --IPv6=XXXX:XXXX:XXXX:XXXX:XXXX:XXXX:XXXX:XXXX
     """
     parse=argparse.ArgumentParser()
     parse.add_argument('--prefix',type=str,help='BGP prefix')

@@ -13,7 +13,7 @@ import os
 import datetime
 
 """
-sudo python3 DynamicScan.py --input=/home/liguo/ipv6_project/6density/data1.csv --output=/home/liguo/ipv6_project/6density --budget=500  --IPv6=2001:da8:ff:212::10:3 --delta=16 --beta=16
+sudo python3 DynamicScan.py --input=./data.csv --output=/result.txt --budget=500  --IPv6=XXXX:XXXX:XXXX:XXXX:XXXX:XXXX:XXXX:XXXX --delta=16 --beta=16
 """
 
 def DynamicScan(root, budget, source_ip, output_dir):
