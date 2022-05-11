@@ -99,7 +99,7 @@ Parameter meaning introduction:
   
   ```
   sudo python3 AddrMiner.py --output=outputDir --budget= the upperbound of scan times each bgp prefix --IPv6=IPv6addr
-  eg: sudo python3 AddrMimer.py  --output=result --budget=100  --IPv6=XXXX:XXXX:XXXX:XXXX:XXXX:XXXX:XXXX:XXXX
+  eg: sudo python3 AddrMiner.py  --output=result --budget=100  --IPv6=XXXX:XXXX:XXXX:XXXX:XXXX:XXXX:XXXX:XXXX
   ```
 
 
