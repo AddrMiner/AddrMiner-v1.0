@@ -44,6 +44,16 @@ On this website we present additional information about our ATC paper Clusters i
   ```
   pip3 install infomap
   ```
+* seaborn
+  ```
+  pip3 install seaborn
+  ```
+
+* hdbscan-0.8.27
+  ```
+  pip3 install hdbscan
+  ```
+
 
 * zmapv6 (ask in IPv4 network)
 
