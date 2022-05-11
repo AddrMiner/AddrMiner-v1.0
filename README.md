@@ -30,9 +30,9 @@ On this website we present additional information about our ATC paper Clusters i
   pip3 install pyasn
   ```
   
-* Community 1.0.0b
+* python-louvain-0.16
   ```
-  pip3 install community
+  pip3 install python-louvain
   ```
   
 * Cython 0.29.28
