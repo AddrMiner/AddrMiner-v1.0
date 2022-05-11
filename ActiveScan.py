@@ -6,16 +6,16 @@ from AddrsToSeq import get_rawIP
 
 def Scan(addr_set, source_ip, output_file, tid):
     """
-    运用扫描工具检测addr_set地址集中的活跃地址
+    Use Zmap to detect active addresses in the addr_set address set
 
     Args：
-        addr_set：待扫描的地址集合
+        addr_set：Set of addresses to be scanned
         source_ip
         output_file
-        tid:扫描的线程id
+        tid:Scanned thread id
 
     Return：
-        active_addrs：活跃地址集合
+        active_addrs：Active address set
     """
 
     scan_input = output_file + '/zmap/scan_input_{}.txt'.format(tid)

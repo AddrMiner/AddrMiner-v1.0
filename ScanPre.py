@@ -9,10 +9,10 @@ import pdb
 
 def ScanPre(root):
     """
-    动态扫描开始前的准备工作
+    Preparation for the start of the dynamic scan
 
     Args:
-        root:空间树的根结点
+        root: Root node of a spatial tree
     """
 
     InitializeDS(root)
@@ -21,17 +21,17 @@ def ScanPre(root):
 
 def InitializeDS(node, parent_stack = Stack(), beta=16):
     """
-    对结点node的DS进行初始化
+    Initialize the DS of node node
 
     Args：
-        node：当前DS待初始化的结点
-        parent_stack：父结点的DS            
-        beta：向量每一维度的基数
+        node：Current DS nodes to be initialised
+        parent_stack：DS of the parent node           
+        beta：The base of each dimension of the vector
     """    
     
     # pdb.set_trace()
     parent=node.parent
-    stack = deepcopy(parent_stack) #注意要将父结点的DS做拷贝
+    stack = deepcopy(parent_stack) # Note that you have to make a copy of the DS of the parent node
     if parent !=None:
         stack.push(parent.diff_delta)
 
@@ -55,10 +55,10 @@ def InitializeDS(node, parent_stack = Stack(), beta=16):
 
 def InitializeTS(node):
     """
-    对所有叶结点的TS进行初始化（SS和NDA在结点创建时已被初始化）
+    TS initialisation of all leaf nodes (SS and NDA are initialised at node creation)
 
     Args：
-        node：当前TS待初始化的结点
+        node：Current TS nodes to be initialised
     """
 
     # pdb.set_trace()

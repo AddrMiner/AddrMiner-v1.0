@@ -8,19 +8,18 @@ from copy import deepcopy
 # ptvsd.wait_for_attach()
 
 """
-从文件中读取IPv6地址，并将IPv6地址转换为有序的向量序列
+Load IPv6 addresses from a file and convert the IPv6 addresses into an ordered vector sequence
 """
 
 class AddrVecList(list):
     """
-    地址向量列表，继承自内置list类型，
-    为排序时便于比较，对>=和<=运算符重载
+    Address vector list, inherited from built-in list type, overloaded with >= and <= operators for easy comparison when sorting
     """
 
     def __init__(self):
         list.__init__([])
 
-    #重载>=运算符
+    # Overloading the >= operator
     def __ge__(self, value):
         ge = True
         for i in range(len(self)):
@@ -29,7 +28,7 @@ class AddrVecList(list):
                 break
         return ge
 
-    #重载<=运算符
+    # Overloading the <= operator
     def __le__(self, value):
         le = True
         for i in range(len(self)):
@@ -41,14 +40,14 @@ class AddrVecList(list):
 # def InputAddrs(input='files/source.hex', beta=16):
 def InputAddrs(input='data.csv', beta=16):
     """
-    从输入文件中读取IPv6地址列表，并转换为有序的地址向量序列
+    Load a list of IPv6 addresses from the input file and convert it to an ordered sequence of address vectors
 
     Args：
-        input：存储了所有种子地址的文件（.hex:不带冒号；.txt：带冒号，可压缩）
-        beta:地址向量每一维度的基数
+        input：Files with all seed addresses stored (.hex: without colon; .txt: with colon, compressible)
+        beta: The base of each dimension of the address vector
 
     Return:
-        V：有序的地址向量序列
+        V：Ordered sequence of address vectors
     """
 
     IPv6 = []
@@ -60,7 +59,7 @@ def InputAddrs(input='data.csv', beta=16):
     IPv6 = [addr.strip('\n') for addr in IPv6]
     
     if input[-3:] == 'txt':
-    # 将所有IPv6地址全部转换为未压缩形式
+    # Convert all IPv6 addresses to uncompressed form
         for i in range(len(IPv6)):
             IPv6[i] = ipaddress.IPv6Address(IPv6[i])
             IPv6[i] = IPv6[i].exploded
@@ -72,32 +71,32 @@ def InputAddrs(input='data.csv', beta=16):
 
 def AddrsToSeq(addr=[], m=4, lamda=128):
     """
-    将标准IPv6地址列表转换为有序的向量列表
+    Converting a standard IPv6 address list into an ordered vector list
 
     Args：
-        addr：标准化的IPv6地址列表，列表的每个元素为IPv6地址的无冒号16进制写法
-        m：地址向量的每一维度代表的二进制数长度
-        lamda：IPv6地址总长度（默认为128）
+        addr：A standardized list of IPv6 addresses, each element of which is a colonless hexadecimal representation of the IPv6 address
+        m：The length of the binary number represented by each dimension of the address vector
+        lamda：Total length of IPv6 address (default is 128)
 
     Returns：
-        转换得到的IPv6地址向量二维列表，
-        每个一维列表中的每个元素代表一个IPv6地址向量的在一个维度上的十进制值
+        A two-dimensional list of IPv6 address vectors obtained by conversion.
+        Each element in each one-dimensional list represents the decimal value of an IPv6 address vector in one dimension
     """
 
     if lamda % m != 0:
         print('!!EXCEPTION: lamda % m != 0')
         exit()
     V = AddrVecList()
-    # V = []  #地址向量列表
-    # N = []  #地址对应的整数列表，便于排序
+    # V = []  # Address vector list
+    # N = []  # A list of integers corresponding to addresses for easy sorting
     for i in range(len(addr)):
         if addr[i] == '':
             break
         # addr_hex = addr[i].replace(':','')
-        N = int(addr[i], 16)   #将IPv6地址（字符串）转换为对应的整数值
-        v = []  #每个地址向量的值（整数列表）
+        N = int(addr[i], 16)   # Converting IPv6 addresses (strings) to their corresponding integer values
+        v = []  # Value of each address vector (list of integers)
         for delta in range(1, int(lamda/m + 1)):
-            x1 = int(2 ** (m*(lamda/m - delta)))    #注意需显式地将结果转换为整数
+            x1 = int(2 ** (m*(lamda/m - delta)))    # Note that the result needs to be explicitly converted to an integer
             x2 = N % int(x1 * (2 ** m))
             x3 = N % x1
             v.append(int((x2 - x3)/x1))
@@ -108,29 +107,29 @@ def AddrsToSeq(addr=[], m=4, lamda=128):
 
 def SeqToAddrs(seq):
     """
-    将地址向量列表转换为IPv6地址（字符串）集合
+    Converting a list of address vectors to a collection of IPv6 addresses (strings)
 
     Args：
-        seq：代表扫描空间的地址向量列表（可能有被Expand的维度）
+        seq：List of address vectors representing the scan space (may have dimensions that are Expanded)
 
     Return：
-        addr_list：（压缩形式的）IPv6地址列表
+        addr_list：List of IPv6 addresses (in compressed form)
     """
 
     if seq == []:
         return set()
 
-    m = int(128/len(seq[0])) #地址向量的每一维度代表的二进制数长度
+    m = int(128/len(seq[0])) # The length of the binary number represented by each dimension of the address vector
     seq = deepcopy(seq)
-    value = 0   # 地址对应的整数值   
+    value = 0   # The integer value corresponding to the address     
     # addr_set = set()
     addr_list = []
-    a_vec = seq[0]  # 一个地址向量，用于判断哪个维度被Expand过
-                    # (列表中所有向量被Expand的维度都是相同的)
-    vec_dim = len(a_vec)   # 地址向量的维数
+    a_vec = seq[0]  # An address vector to determine which dimension has been Expanded
+                    # (All vectors in the list are of the same dimension by Expand)
+    vec_dim = len(a_vec)   # Dimension of the address vector
 
     for i in range(vec_dim):
-        if a_vec[i] == -1: # i维度被Expand，需要在列表中增加地址
+        if a_vec[i] == -1: # i dimension is Expanded, need to add address to the list
             seq = SeqExpand(seq, i, m)
 
     for vector in seq:
@@ -146,7 +145,7 @@ def SeqToAddrs(seq):
 
 
 def get_rawIP(IP):
-    # 标准IP -> hex IP
+    # Standard IP -> hex IP
     seglist=IP.split(':')
     if seglist[0]=='':
         seglist.pop(0)
@@ -168,18 +167,7 @@ def get_rawIP(IP):
 
     
 def SeqExpand(seq, idx, m=4):
-    """
-    将列表seq中所有向量的idx维度上的-1还原为1-2^m区间内的所有数
-
-    Args：
-        seq：待还原的地址向量列表
-        idx：待还原的维度（从0开始）
-        m:地址向量的每一维度代表的二进制数长度
-
-    Return:
-        new_seq：更新后的地址向量列表
-    """
-    
+ 
     new_seq = []
     for vector in seq:
         for v in range(2 ** m):
@@ -187,56 +175,6 @@ def SeqExpand(seq, idx, m=4):
             new_seq.append(deepcopy(vector))
     
     return new_seq
-
-
-# def SortVecList(V):
-#     """
-#     对地址向量列表进行快速排序
-
-#     Args:
-#         未排序的地址向量列表
-#     """
-
-#     QuickSort(V, 0, len(V) - 1)
-
-# def QuickSort(V, low, high):
-#     """
-#     对V[low]和V[high]之间的元素进行快速排序
-    
-#     Args：
-#         V：待排序的向量列表
-#         low：待排序的元素下标下界
-#         high：待排序的元素下标上界
-#     """
-
-#     if low < high:
-#         pivotloc = Partition(V, low, high)
-#         QuickSort(V, low, pivotloc - 1)
-#         QuickSort(V, pivotloc + 1, high)
-
-# def Partition(V, low, high):
-#     """
-#     以V[low]做枢轴，将V[low]和V[high]之间的元素做划分
-
-#     Args:
-#         V：待排序的向量列表
-#         low：待排序的元素下标下界
-#         high：待排序的元素下标上界
-
-#     Return:
-#         枢轴元素的下标
-#     """    
-#     pivot_v = V[low]
-#     while low < high:
-#         while low < high and V[high] >= pivot_v:
-#             high -= 1
-#         V[low] = V[high]
-#         while low < high and V[low] <= pivot_v:
-#             low += 1
-#         V[high] = V[low]
-#     V[low] = pivot_v
-#     return low
-
 
 if __name__ == '__main__':
     # IPv6 = ["2c0f:ffd8:0030:ac1d:0000:0000:0000:0146","2001:0000:0000:0000:0000:0000:1f0d:4004"]

@@ -10,10 +10,10 @@ import argparse
 def generateTarget(PD, bgp, bgplen2prefix64, budget=1e6):
     """
     Args:
-        PD: 地址模式库
-        budget: 生成地址预算
+        PD: address pattern library
+        budget: Limit the number of generated destination addresses
     """
-    #组织关联策略
+    # Organizational association strategy
     new_ipv6 = []
     new_ipv6 += OrgRel(bgp, PD, bgplen2prefix64, budget)
 

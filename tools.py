@@ -1,5 +1,5 @@
 """
-    必要的处理函数和工具
+    Necessary processing functions and tools
 """
 import numpy as np
 import seaborn as sns
@@ -14,7 +14,7 @@ from collections import Counter
 from scipy import stats
 from random import shuffle
 
-#将ipv6地址标准化
+# Standardising ipv6 addresses
 def standardize(ipv6=""):
     try:
         t = ipaddress.ip_address(ipv6.strip())
@@ -33,7 +33,7 @@ def calIIDEntropy(ipv6,base=None):
         e += -1 * _p * math.log(_p,base)
     return e
 
-#对地址进行预处理：标准化，提取ASN和BGP前缀
+# Pre-processing of addresses: normalisation, extraction of ASN and BGP prefixes
 def handle(data, ipasn_dbpath):
     data['std_ipv6'] = data['ipv6'].map(standardize)
 
@@ -54,19 +54,19 @@ def calEntropy(x,base=None):
         e += -1 * _p * math.log(_p,base)
     return e
 
-# 使用种类和熵判断
+# Use of type and entropy judgements
 def getPattern(ipv6_list,types=4,emin=0.4,emax=0.8):
     """
     Args:
-        ipv6_list: ipv6地址集合
-        types: 每个半字节取值种类个数阈值,[1,16]
-        emin: Shannon熵下界 (0,1)
-        emax: Shannon熵上界 (0,1)
+        ipv6_list: ipv6 addresses
+        types: Threshold for the number of types of values per half-byte,[1,16]
+        emin: Shannon Entropy lower bound (0,1)
+        emax: Shannon entropy upper bound (0,1)
     Return:
-        pattern: 地址模式
+        pattern: address pattern
     """
     pattern = []
-    # 遍历得到每个半字节位的全部取值（字符转换为数字类型）
+    # Iterate to get the full value of each half-byte bit (character to number type conversion)
     R = [] 
     for i in range(32):
         t = []
@@ -74,43 +74,43 @@ def getPattern(ipv6_list,types=4,emin=0.4,emax=0.8):
             ipv6 = ipv6.replace(":","") 
             t.append(ipv6[i])
         R.append(t)
-    # 计算香农熵
+    # Calculating Shannon entropy
     e_list = []
     for i in range(32):
         e = calEntropy(R[i],base=16)
         e = round(e,3)
         e_list.append(e)
     length = len(ipv6_list)
-    # 生成模式串
+    # Generating pattern strings
     for i in range(32):
-        # 这个半字节位在地址集合中各个取值个数字典格式
+        # The dictionary format for the number of values of each half-byte bit in the address set
         d = Counter(R[i]) 
         if len(d)==1:
-            # single 模式
+            # single pattern
             pattern.append(list(d.keys())[0])
         elif len(d) <= types and e_list[i] < emin:
-            # 使用 list 模式
+            # Use list pattern
             choosed_v = []
             for k,v in d.items():
                 if v > length/32:
                     choosed_v.append(k)
-            choosed_v = sorted(choosed_v)# 这个一定要排序
+            choosed_v = sorted(choosed_v)# This must be sorted
             pattern.append("[" + "".join(choosed_v) +"]")  
         else:
             if e_list[i] > emax:
-                # wildcard 模式
+                # wildcard pattern
                 pattern.append("?")
             else:
-                # range 模式
+                # range pattern
                 a = min(list(d.keys()))
                 b = max(list(d.keys()))
                 if a == '0' and b == 'f':
                     pattern.append("?")
                 else:
                     pattern.append("[%s-%s]" % (a,b))
-    # 从左到右扫描模式串，判断是否合并为 dict 
-    # 注意需要 传入的向量每个元素是int/float，R[0]里的都是char
-    # 用斯皮尔曼相关性系数
+    # Scan the pattern string from left to right and determine if it is merged into dict
+    # Note that each element of the vector that needs to be passed in is an int/float, the ones in R[0] are char
+    # Using the Spearman correlation coefficient
     return "_".join(pattern)
 
 def getSet(symbol):
@@ -141,7 +141,6 @@ def setSet(s):
         return '[' + ''.join(s) + ']'
 
 def mergePattern(pattern1,pattern2,length=0):
-    # length 保留p1的多少nybble不发生变化
     new_pattern = []
     p1 = pattern1.split("_")
     p2 = pattern2.split("_")
@@ -155,7 +154,7 @@ def mergePattern(pattern1,pattern2,length=0):
             new_pattern.append(setSet(s1|s2))
     return "_".join(new_pattern)
 
-# 计算相似度矩阵
+# Calculate the similarity matrix
 def genMatrix(pattern_list):
     L = len(pattern_list)
     matrix = np.zeros([L, L]) 
@@ -167,7 +166,7 @@ def genMatrix(pattern_list):
             pbar.update(1)
     return matrix
 
-# 计算相似度函数
+# Calculating the similarity function
 def calSimilarity(pattern1, pattern2, extra_len=0):
     p1 = pattern1.split("_")[extra_len:]
     p2 = pattern2.split("_")[extra_len:]
@@ -178,21 +177,21 @@ def calSimilarity(pattern1, pattern2, extra_len=0):
             c1 = getSet(a)
             c2 = getSet(b)
             score += len(c1&c2)/len(c1|c2) + 1.0
-        elif len(a)==1 and len(b)==1 and a!='?' and b!='?': # 只能是双single
+        elif len(a)==1 and len(b)==1 and a!='?' and b!='?': # Only double-single
             score += 1.0 if a==b else 0.0
         else:
             continue
     return score
 
 def shuffle_str(s):
-    # 将字符串转换成列表
+    # Converting strings to lists
     str_list = list(s)
-    # 调用random模块的shuffle函数打乱列表
+    # Call the shuffle function of the random module to break up the list
     shuffle(str_list)
-    # 将列表转字符串
+    # Convert list to string
     return ''.join(str_list)
 
-# 部分种子地址可能不在生成地址范围
+# Some seed addresses may not be in the generated address range
 def genAddrByPattern(pattern, limit=None):
     new_ipv6 = []
     c_set = "0123456789abcdef"
@@ -224,7 +223,7 @@ def genAddrByPattern(pattern, limit=None):
     dfs(pattern.split("_"),0,"")
     return new_ipv6
 
-# 分析pattern全空间大小
+# Analyse pattern full space size
 def calSpace(p):
     a = 16**p.count('?')
     b = 1

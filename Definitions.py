@@ -6,7 +6,7 @@ import math
 
 class Stack(object):
     """
-    栈类(DS的数据类型)
+    Stack class (data type of DS)
     """
     
     def __init__(self):
@@ -35,7 +35,7 @@ class Stack(object):
 
 class TreeNode:
     '''
-    空间树的节点
+    Nodes of the space tree
     '''
     global_node_id=0
     def __init__(self,iplist,_partent=None):
@@ -43,20 +43,19 @@ class TreeNode:
             self.level=1
         else:
             self.level=_partent.level+1
-        self.iplist=iplist    # 存放ipv6种子地址向量
+        self.iplist=iplist    
         self.parent=_partent
         self.childs=[]
         TreeNode.global_node_id+=1
-        self.node_id=TreeNode.global_node_id #节点编号
-        self.diff_delta = 0    #分裂点的维度
+        self.node_id=TreeNode.global_node_id
+        self.diff_delta = 0   
         self.DS=Stack()
-        self.TS=[]    # 地址向量列表，每个成员代表一个被Expand的地址向量，
-                      # 被Expand的维度上值为-1
-        self.SS=set() # 扫描过的IPv6地址字符串集合
-        self.NDA=0    # 命中个数
-        self.AAD=0.0  # 命中比例
-        self.last_pop=0 #记录DS上次弹出的维度（从1开始）
-        self.last_pop_value=0 # 记录DS上一次弹出的值
+        self.TS=[]    
+        self.SS=set() 
+        self.NDA=0   
+        self.AAD=0.0  
+        self.last_pop=0 
+        self.last_pop_value=0
 
 
     def isLeaf(self):
@@ -64,13 +63,13 @@ class TreeNode:
     
     def Steady(self,delta):
         """
-        判断结点中的所有向量序列是否在维度delta上有相同值
+        Determine if all vector sequences in the node have the same value in dimension delta
 
         Args：
-            delta：待判断维度
+            delta：Dimensions to be judged
 
         Return：
-            same：结点中向量序列在delta维度上熵为0时为True
+            same：True when the entropy of the vector sequence in the node is 0 in the delta dimension
         """
         same=True
         l=len(self.iplist)
@@ -86,9 +85,9 @@ class TreeNode:
         return same
     
 
-    # 计算每一个维度上的熵值
+    # Calculate the entropy value on each dimension
     def get_entropy(self,i):
-        info_d={} # 统计每个维度频率，保存在字典中。eg:('1'.2)
+        info_d={} # Count the frequency of each dimension and save it in the dictionary. eg:('1'.2)
         for ip in self.iplist:
             if ip[i] in info_d:
                 info_d[ip[i]]=info_d[ip[i]]+1
@@ -105,7 +104,7 @@ class TreeNode:
         return entropy
 
 
-    # 找出合适的分裂点(返回值为维度值，纬度值减一取相应的值))：熵值不为零，并且上至最小
+    # Find the appropriate split point (the return value is the dimension value and the latitude value minus one to take the corresponding value)): the entropy value is not zero and up to the minimum
     def get_splitP(self,delta):
         best_entropy,best_postion=float("Inf"),-2  
         for i in range(int(128/math.log(delta,2))):
@@ -121,12 +120,12 @@ class TreeNode:
 
     def ExpandTS(self, delta):
         """
-        对结点的TS做Expand操作
+        Do Expand operation on TS of node
 
         Args：
-            delta：当前需要Expand的维度
+            delta：Current dimensions that need to be Expanded
         """
-        if self.TS==[]: # 叶结点的TS初始为对应的地址向量子序列
+        if self.TS==[]: # The TS of the leaf node is initially a subsequence of the corresponding address vector
             for ip in self.iplist:
                 self.TS.append(deepcopy(ip))
         self.last_pop=delta
@@ -134,18 +133,18 @@ class TreeNode:
         for v in self.TS:
             v[delta-1]=-1
 
-        # 删除TS中重复的成员
+        # Delete duplicate members in TS
         self.TS = list(set([tuple(v) for v in self.TS]))
         self.TS = [list(v) for v in self.TS]
 
 
     def  OutputNode(self):
         """
-        输出一个结点的信息
+        Output information about a node
 
         Args:
-            node:当前结点
-            V：地址向量序列
+            node: Current Node
+            V： Address vector sequence 
         """
 
         if self.diff_delta == 0:
@@ -187,7 +186,7 @@ class TreeNode:
 
 def Intersection(l1,l2):
     '''
-    计算两个列表的重复元素
+    Calculate the duplicate elements of two lists
     '''
     intersection=[v for v in l1 if v in l2]
     return intersection

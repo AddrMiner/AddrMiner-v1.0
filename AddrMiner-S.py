@@ -12,8 +12,8 @@ import os
 def generateTarget(bgp, ipv6, result, budget=1e6):
     """
     Args:
-        PD: 地址模式库
-        budget: 生成地址预算
+        PD: pattern library
+        budget: limit the number of target addresses
     """
     with open('BGP/BGP-S.pk','rb') as f:
         bgp_s = pickle.load(f)

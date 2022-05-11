@@ -1,8 +1,8 @@
 """
-    地址探测:
-    input: 模式库
-    output: 探测到的活跃地址
-    process: 组织关联 or 相似度匹配
+    Detection addresses:
+    input: pattern library
+    output: active addresses
+    process: Similarity matching strategy or Organizational association strategy
 """
 from tools import *
 from UGCPM import *
@@ -46,7 +46,7 @@ def Start():
     
     # # step 3
     print("[+] begin to generate and detect targets")
-    # 丰富种子地址bgp前缀导入
+    # Import bgp prefixes with sufficient seed address 
     with open('BGP/BGP-S.pk','rb') as f:
         bgp_s = pickle.load(f)
     
@@ -54,7 +54,7 @@ def Start():
 
 
     with tqdm(total=3*limit) as pbar:
-        #丰富种子
+        # sufficient seeds
         num=0
         ipv6_list = []
         for bgp in bgp_s:
@@ -66,11 +66,11 @@ def Start():
         with open('./seeds-S.txt','w') as f:
             for addr in ipv6_list:
                 f.write(addr.strip()+'\n')
-        #少量种子
+        # few seeds
         num=0
         with open('BGP/BGP-F.pk','rb') as f:
             bgp_f = pickle.load(f)
-        #相似度匹配策略
+        # Similarity matching strategy
         new_ipv6_F = []
         for bgp in bgp_f:
             ipv6_list = bgp_f[bgp]
@@ -78,11 +78,11 @@ def Start():
             num+=1
             pbar.update(1)
             if num==limit:break
-        #无种子
+        # no seeds
         num = 0
         with open('BGP/BGP-N.pk','rb') as f:
             bgp_n = pickle.load(f)
-        #组织关联策略
+        # Organizational association strategy
         new_ipv6_N = []
         for bgp in bgp_n:
             new_ipv6_N += OrgRel(bgp, PD, bgplen2prefix64, args.budget)

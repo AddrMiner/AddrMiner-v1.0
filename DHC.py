@@ -4,21 +4,21 @@ import math
 from copy import deepcopy
 
 '''
-使用DHC 算法成成一颗空间树
+Using DHC algorithm to form a spatial tree
 '''
 
 lamada=128
 
 def SpaceTreeGen(IPS, delta=16,beta=16):
     '''
-    空间树生成
+    Spatial tree generation
 
     Args:
-        delta:基数
-        beta:叶子结点中地址数量的上限
+        delta: Base
+        beta: Upper limit of the number of addresses in a leaf node
 
     Return：
-        root：空间树的根结点
+        root：root node of tree
     '''
     root=TreeNode(IPS)
     DHC(root,beta,delta)
@@ -27,17 +27,17 @@ def SpaceTreeGen(IPS, delta=16,beta=16):
     
 def DHC(node,beta,delta):
     '''
-    层次聚类算法
+    Hierarchical clustering algorithm
 
     Args；
-        node：当前待聚类的结点
-        beta：叶结点中向量个数上限
-        delta:基数
+        node：The current node to be clustered
+        beta：Upper limit on the number of vectors in a leaf node
+        delta: base
     '''
     vecnum=len(node.iplist)
     if vecnum<=beta:
         return
-    # 记录当前节点所有向量中不为零的熵值最小的值所在的维度
+    # Record the dimension in which the value with the smallest entropy value that is not zero among all vectors of the current node is located
     best_position=node.get_splitP(delta)
     if best_position==-1:
         return
@@ -54,8 +54,8 @@ def DHC(node,beta,delta):
 
 def SplitVecSeq(node,best_position):
     '''
-    将node.iplist分割成不同的list
-    返回字典形式 {"1","{ip1,ip2}}"}
+    Split node.iplist into different lists
+    return dictionary form {"1","{ip1,ip2}}"}
     '''
     dic_key_ips={}
     for ip in node.iplist:
@@ -68,10 +68,10 @@ def SplitVecSeq(node,best_position):
 
 def OutputSpaceTree(root):
     """
-    层次遍历输出空间树
+    Hierarchical traversal of the output space tree
 
     Args：
-        root：空间树的根结点
+        root：root node of tree
     """
 
     print('******LEVEL 1******')

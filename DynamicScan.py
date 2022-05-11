@@ -21,16 +21,16 @@ def DynamicScan(root, budget, source_ip, output_dir):
     动态扫描空间树
 
     Args：
-        root：空间树的根结点
-        V：种子地址向量序列
-        budget：扫描开销上限（最多扫描的地址数量）
-        source_ip：主机源IPv6地址
-        output_dir：输出文件目录
+        root：root node of tree 
+        V：Seed address vector sequence
+        budget：Upper limit of scanning overhead (maximum number of addresses to be scanned)
+        source_ip：Host source IPv6 address
+        output_dir：Output file directory
 
     Return：
-        R：经扫描发现的活跃地址集合（每个成员为真实的IPv6地址字符串）【序列？】
-        P：检测到的别名前缀集合
-        budget：剩余扫描次数
+        R：Active address sets found by scanning (each member is a real IPv6 address string)
+        P：Collection of detected alias prefixes
+        budget：Number of remaining scans
     """
     # OutputSpaceTree(root,V)
     # R = set()
@@ -39,16 +39,15 @@ def DynamicScan(root, budget, source_ip, output_dir):
     init_budget = deepcopy(budget)
     active_file = output_dir + '/result-S.txt'
     target_file = output_dir + '/target-S.txt'
-    xi = [] # 待扫描结点队列ξ
+    xi = [] # Queue of nodes to be scannedξ
     InitializeNodeQueue(root, xi)
     xi, budget, R, T = Scan_Feedback(xi, init_budget, budget, R, T, source_ip, output_dir, target_file)
     
     while budget > 0:
-        xi_h = TakeOutFrontSegment(xi, int(0.1 * len(xi))+1)  # 每次迭代需要扫描的结点
+        xi_h = TakeOutFrontSegment(xi, int(0.1 * len(xi))+1)  # Nodes to be scanned per iteration
         ReplaceDescendants(xi, xi_h)
         xi_h, budget, R, T = Scan_Feedback(xi_h, init_budget, budget, R, T, source_ip, output_dir, target_file)
-        xi = MergeSort(xi_h, xi)    #!! 原本位于队伍后部的别名结点经过一次MergeSort又会到队伍首部去，
-                                        #!! 导致对其进行重复的别名检测
+        xi = MergeSort(xi_h, xi) 
     
     # print("begin to store the ip address in {} and {}".format(active_file,target_file))
     with open(active_file, 'w', encoding='utf-8') as f:
@@ -63,11 +62,11 @@ def DynamicScan(root, budget, source_ip, output_dir):
 
 def InitializeNodeQueue(root, xi):
     """
-    层次遍历空间树，将结点队列ξ初始化为空间树的叶子结点
+    Hierarchical traversal of the spatial tree, initializing the node queue ξ as a leaf node of the spatial tree
 
     Args：
-        root:空间树的根结点
-        xi：结点队列ξ
+        root:
+        xi：queueξ
     """
     # pdb.set_trace()
     q = []
@@ -82,25 +81,24 @@ def InitializeNodeQueue(root, xi):
 
 def Scan_Feedback(xi, init_budget, budget, R, T, source_ip, output_dir, target_file):
     """
-    对队列xi中的所有结点进行一次扫描，
-    并根据扫描得到的活跃地址密度对队列重新排序
+    Perform a scan of all nodes in queue xi and reorder the queue based on the density of active addresses obtained from the scan
 
     Args：
-        xi：结点队列ξ
-        init_budget：扫描次数上限
-        budget：剩余的扫描次数
-        R：经扫描发现的活跃地址集合
+        xi：node queueξ
+        init_budget:Scanning upper limit
+        budget：Number of scans remaining
+        R：Collection of active addresses found by scanning
         T
-        V:种子地址向量集合
+        V:Set of seed address vectors
         source_ip
         output_dir
         target_file
 
     Return:
-        xi:重新排序后的结点队列ξ
-        budget:经过一次迭代扫描之后剩余的扫描次数
-        R：更新后的活跃地址集合
-        T：预测地址集合
+        xi: The reordered node queue ξ
+        budget: Number of scans remaining after one iteration of scanning
+        R：Updated collection of active addresses
+        T：Collection of predicted addresses
     """
 
     # pdb.set_trace()
@@ -115,7 +113,7 @@ def Scan_Feedback(xi, init_budget, budget, R, T, source_ip, output_dir, target_f
         # print(node.TS)
         SS_addr_union += list(node.SS)
 
-    C = set(TS_addr_union).difference(set(SS_addr_union)) #本次需要扫描的地址集合
+    C = set(TS_addr_union).difference(set(SS_addr_union)) # The set of addresses to be scanned this time
     budget -= len(C)
     if budget <= 0:
         C = LimitBudget(budget, C)
@@ -125,7 +123,7 @@ def Scan_Feedback(xi, init_budget, budget, R, T, source_ip, output_dir, target_f
     # with open(target_file, 'a', encoding='utf-8') as f:
     #     for target in C:
     #         f.write(target + '\n')
-    active_addrs = set(Scan(C, source_ip, output_dir, 0))   #扫描并得到活跃的地址集合
+    active_addrs = set(Scan(C, source_ip, output_dir, 0))   # Scan and get the active address set
 
     R.update(active_addrs)
     # print('[+]Hit rate:{}   Remaining scan times:{}\n'
@@ -149,14 +147,14 @@ def Scan_Feedback(xi, init_budget, budget, R, T, source_ip, output_dir, target_f
 
 def TakeOutFrontSegment(xi, m):
     """
-    提取结点队列xi中的前m个结点，作为下次扫描的目标结点队列
+    Extract the first m nodes in the node queue xi as the target node queue for the next scan
 
     Args：
-        xi:待分割的队列
-        m：新目标队列的结点数
+        xi: Queue to be split
+        m：Number of nodes in the new target queue
 
     Return：
-        xi_h：新的目标队列
+        xi_h：New target queue
     """
 
     # xi_h = deepcopy(xi[:m])
@@ -174,29 +172,30 @@ def TakeOutFrontSegment(xi, m):
 
 def ReplaceDescendants(xi, xi_h):
     """
-    经过一次扫描后，若某结点与其父结点有相同的DS，在xi和xi_h队列中，
-    需要将该结点及其所有的兄弟结点删除，并插入它们的父结点【证  明见Theorom3】
+    After a new scan, if a node has the same DS as its parent node in the xi and xi_h 
+    queue, the node and all its sibling nodes need to be deleted and their parent nodes
+    inserted
 
     Args：
-        xi：未被扫描的，但在下次扫描中不会被扫描的结点队列
-        xi_h：下次将会被扫描的结点队列
+        xi：Queue of nodes that are not scanned, but will not be scanned in the next scan
+        xi_h：Queue of nodes that will be scanned next
     """
 
     # pdb.set_trace()
 
-    new_nodes = set()   #将要被加入队列的结点集合
+    new_nodes = set()   # The set of nodes that will be added to the queue
     for node in xi_h:
         if node.parent == None:
-            break   #注释！！！！！
+            break   
         if node.parent.DS.stack == node.DS.stack:
             node.parent.TS = node.TS
             new_nodes.add(node.parent)
 
     complete_queue = set(xi_h + xi)
     # xi_h_set = set(xi_h)
-    # xi_set = set(xi)    #将优先队列先转换为结点集合，方便后续并、交等运算的进行
+    # xi_set = set(xi)    # Convert the priority queue into a set of nodes first to facilitate subsequent merge and intersection operations
     count = 0
-    # 防止遍历时修改new_nodes，报错RuntimeError: Set changed size during iteration
+    # prevent new_nodes from being modified during traversal，RuntimeError: Set changed size during iteration
     xiugai_nodes = new_nodes.copy()
     for node in xiugai_nodes:
         # childs = set(node.cohilds)
@@ -213,7 +212,7 @@ def ReplaceDescendants(xi, xi_h):
         # node.SS = set(node.SS)
         node.AAD = float(node.NDA)/len(node.SS)
 
-        #分别需要从两个队列和new_nodes集合中删除的结点
+        # Nodes that need to be removed from the two queues and the new_nodes collection respectively
         xi_h_remove = Intersection(retired, xi_h)
         xi_remove = Intersection(retired, xi)
         new_nodes_remove = Intersection(retired, new_nodes)
@@ -230,14 +229,14 @@ def ReplaceDescendants(xi, xi_h):
 
 def MergeSort(xi_h, xi):
     """
-    将两个有序的结点队列合并为一个
+    Merge two ordered queues of nodes into one
 
     Args：
-        xi_h：队列1
-        xi：队列2
+        xi_h：queue 1
+        xi：queue 2
 
     Return：
-        queue：合并后的有序队列
+        queue：Merged ordered queues
     """
 
     queue = []
@@ -262,14 +261,14 @@ def MergeSort(xi_h, xi):
 
 def LimitBudget(budget, C):
     """
-    将C中超出预算部分的地址删除
+    Delete addresses in C that are over budget
 
     Args:
-        budget: 超过预算的地址数的相反数
-        C：下次将要扫描的目标地址集合
+        budget: The opposite of the number of addresses over budget
+        C：The next set of target addresses to be scanned
 
     Return:
-        C：经过处理后的目标地址集合
+        C：The set of processed destination addresses
     """
 
     C = list(C)

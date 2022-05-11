@@ -28,7 +28,7 @@ def std_bgprefix(bgp_prefix):
     r += "::" + bgp_prefix.split("::")[1]
     return r
 
-#组织关联策略
+# Organizational association strategy
 def OrgRel(bgp_prefix,patterns,bgplen2prefix64,budget=None):
     bgp_prefix = std_bgprefix(bgp_prefix)
     random.seed(2021)
@@ -42,7 +42,7 @@ def OrgRel(bgp_prefix,patterns,bgplen2prefix64,budget=None):
             new_ipv6 += genAddrWithBGP(bgp_prefix,iid_p, bgplen2prefix64,limit=budget)
     return random.sample(new_ipv6,budget) if budget < len(new_ipv6) else new_ipv6
 
-#相似度匹配
+# Similarity matching strategy
 def TopK(ipv6_list, PD, k=5, budget=None):  #kheap
     random.seed(2021)
     import heapq
@@ -61,45 +61,45 @@ def TopK(ipv6_list, PD, k=5, budget=None):  #kheap
 def get_good_p(multi_level, hmin=14.0, hmax=16.0, algorithm="louvain", sst=1e7, types=4, emin=0.4, emax=0.8):
     """
     Args:
-        multi_level: [asn, bgp_prefix, std_ipv6, count], 其中count为std_ipv6的size, 即包含的种子数量
-        hmin: 相似度阈值, 小于此值则不构建无向边
-        hmax: 相似度阈值, 如果超过此值则执行节点合并操作
-        algorithm: 采用的图社区发现算法:{infomap,gn,lpa,louvain}
-        sst: 过滤掉空间大小超过sst的模式字符串
-        types: 每个半字节取值种类个数阈值,[1,16]
-        emin: Shannon熵下界 (0,1)
-        emax: Shannon熵上界 (0,1)
+        multi_level: [asn, bgp_prefix, std_ipv6, count], where count is the size of std_ipv6(the number of seeds contained)
+        hmin: Similarity threshold, below which no undirected edges are constructed
+        hmax: Similarity threshold, if exceeded then node merge is performed
+        algorithm: The graph community discovery algorithm used:{infomap,gn,lpa,louvain}
+        sst: Filter out pattern strings whose space size exceeds sst
+        types: Threshold for the number of types of values per half-byte,[1,16]
+        emin: Shannon Entropy lower bound (0,1)
+        emax: Shannon Entropy upper bound (0,1)
     Return:
-        good_dis_p: 根据算法以及进行剔除之后得到的较好的pattern
+        good_dis_p: The better pattern is obtained according to the algorithm and after culling
     """
-    #叶子节点的pattern
+    # Pattern of leaf nodes
     all_pattern = peakProcess(multi_level,types,emin,emax)
-    #并查集优化后的pattern
+    # Pattern after parallel set optimization
     reduced_pattern = optimization(all_pattern,hmax=hmax) #hmax
-    #计算相似度矩阵，并进行存储
+    # Calculate the similarity matrix and store it
     matrix = genMatrix(reduced_pattern)
     with open("pk_data/matrix.pk","wb") as f:
         pickle.dump(matrix,f)
-    #无种子地址的most popular pattern挖掘, 得到最后采用的模式库，并输入到good_dis_p.pk模式库中
+    # Most popular pattern mining without seed addresses, to get the final pattern library used and input into the good_dis_p.pk pattern library
     good_dis_p = mppMiming(multi_level,algorithm=algorithm,sst=sst,hmin=hmin) #algorithm, sst, hmin
     return good_dis_p
 
 # def generateTarget(multi_level, PD, bgplen2prefix64, kheap=10,budget=1e6):
 #     """
 #     Args:
-#         multi_level: [asn, bgp_prefix, std_ipv6, count], 其中count为std_ipv6的size, 即包含的种子数量
-#         PD: 地址模式库
-#         kheap: 若采用"TopK", 选出最相似的kheap个地址模式
-#         budget: 生成地址预算(在所有前缀上都生成)
+#         multi_level: [asn, bgp_prefix, std_ipv6, count], where count is the size of std_ipv6 (the number of seeds)
+#         PD: pattern library
+#         kheap: If "TopK" is used, the most similar kheap address pattern is selected
+#         budget: Generate address budget (on all prefixes)
 #     Return:
-#         targetAddrFile: 生成目标地址文件;组织关联:./GeneratedAddresses/OrgRel.list, 相似度匹配:./GeneratedAddresses/TopK.list
+#         targetAddrFile: Generate target address file; organize associations:./GeneratedAddresses/OrgRel.list, Similarity matching:./GeneratedAddresses/TopK.list
 #     """
 #     seed_prefix = list(multi_level['bgp_prefix'])
 #     seed_ipv6 = list(multi_level['std_ipv6'])
-#     unitprefix_budget = int(budget / len(seed_prefix)) #每个前缀生成的地址数量, 供组织关联策略使用
-#     unitseed_budget = int(budget / len(seed_ipv6)) #每个种子集生成的地址数量, 供相似度匹配策略使用
+#     unitprefix_budget = int(budget / len(seed_prefix)) # Number of addresses generated per prefix, for use in organisational association policies
+#     unitseed_budget = int(budget / len(seed_ipv6)) # Number of addresses generated per seed set, for use in similarity matching strategies
 
-#     #组织关联策略
+#     # Organisational association strategy
 #     new_ipv6 = []
 #     with tqdm(total=len(seed_prefix)) as pbar:
 #         for bgp_prefix in seed_prefix:
@@ -109,7 +109,7 @@ def get_good_p(multi_level, hmin=14.0, hmax=16.0, algorithm="louvain", sst=1e7, 
 #         for ipv6 in new_ipv6:
 #             f.write(ipv6+"\n") 
     
-#     #相似度匹配策略
+#     # Similarity matching strategy
 #     new_ipv6 = []
 #     with tqdm(total=len(seed_prefix)) as pbar:
 #         for ipv6_list in seed_ipv6:
@@ -121,16 +121,16 @@ def get_good_p(multi_level, hmin=14.0, hmax=16.0, algorithm="louvain", sst=1e7, 
 
 def Scan(addr_set, source_ip, output_file, tid):
     """
-    运用扫描工具检测addr_set地址集中的活跃地址
+    Detecting active addresses in the addr_set address set using a scanning tool
 
     Args：
-        addr_set：待扫描的地址集合
+        addr_set：Set of addresses to be scanned
         source_ip
         output_file
-        tid:扫描的线程id
+        tid:Thread id of the scan
 
     Return：
-        active_addrs：活跃地址集合
+        active_addrs：set of active addresses
     """
 
     scan_input = output_file + '/zmap/scan_input_{}.txt'.format(tid)
@@ -165,15 +165,15 @@ def Scan(addr_set, source_ip, output_file, tid):
 
 # def Scan(scan_input, scan_output, source_ip):
 #     """
-#     运用扫描工具检测addr_set地址集中的活跃地址
+#     Detecting active addresses in the addr_set address set using a scanning tool
 
 #     Args：
-#         scan_input: 待扫描的目标地址文件
-#         scan_output: 活跃地址输出文件
-#         source_ip: ipv6地址
+#         scan_input: Target address file to be scanned
+#         scan_output: Active address output file
+#         source_ip: ipv6 addresses
 
 #     Return：
-#         active_addrs：活跃地址集合
+#         active_addrs：set of active addresses
 #     """
 
 #     active_addrs = set()

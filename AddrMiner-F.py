@@ -10,14 +10,14 @@ import argparse
 def generateTarget(PD, bgp, kheap, budget=1e6):
     """
     Args:
-        PD: 地址模式库
-        budget: 生成地址预算
+        PD: address pattern library
+        budget: Limit the number of generated destination addresses
     """
     with open('BGP/BGP-F.pk','rb') as f:
         bgp_f = pickle.load(f)
     
     ipv6_list = bgp_f[bgp]
-    #相似度匹配策略
+    # Similarity matching strategy
     new_ipv6 = []
     new_ipv6 += TopK(ipv6_list, PD, kheap, budget) 
     with open("result/target-F.txt","w") as f:

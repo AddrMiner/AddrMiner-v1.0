@@ -1,13 +1,13 @@
 """
-    无向图创建+模式挖掘:
-    inputfile: 种子地址./data/seeds.csv 
-    outputfile: 模式库 ./pk_data/dis_p.pk
+    Undirected graph creation + pattern mining:
+    inputfile: seeds./data/seeds.csv 
+    outputfile: apttern liabrary ./pk_data/dis_p.pk
     process:
-        Step1: BSPR得到不同网络下的模式字符串
-        Step2: 并查集优化
-        Step3: 相似度计算
-        Step4: 应用图社区发现算法得到模式
-        Step5: 输入到模式库中
+        Step1: BSPR gets pattern strings under different networks
+        Step2: Parallel set optimization
+        Step3: Similarity calculation
+        Step4: Apply the graph community discovery algorithm to get patterns
+        Step5: Input to the pattern library
 """
 from tools import *
 import time 
@@ -61,19 +61,18 @@ def FindBestSplit(ipv6_list, h_rate=0.1):
 
 def peakProcess(multi_level,types=4,emin=0.4,emax=0.8):
     """
-    顶点处理阶段
+    Vertex processing stage
     Args:
-        multi_level: [asn, bgp_prefix, std_ipv6, count], 其中count为std_ipv6的size, 即包含的种子数量
-        types: 每个半字节取值种类个数阈值,[1,16]
-        emin: Shannon熵下界 (0,1)
-        emax: Shannon熵上界 (0,1)
+        multi_level: [asn, bgp_prefix, std_ipv6, count]
+        types: Threshold for the number of types of values per half-byte,[1,16]
+        emin: Shannon Entropy lower bound (0,1)
+        emax: Shannon Entropy upper bound (0,1)
     Return:
-        all_pattern: 挖掘到的模式
+        all_pattern: Patterns mined
     """
     all_leafs = []
     with tqdm(total=len(multi_level)) as pbar:
         for leafs in multi_level['std_ipv6']:
-            # 怎么自动找跃变区域
             for h_rate in [0.1, 0.08, 0.05]:
                 tmp = FindBestSplit(leafs, h_rate)
                 if len(tmp) == 1: continue
@@ -108,10 +107,10 @@ def peakProcess(multi_level,types=4,emin=0.4,emax=0.8):
 def optimization(all_pattern, hmax=16.0):
     """
     Args:
-        all_pattern: BSPR得到的所有模式字符串
-        hmax:相似度阈值,并查集优化时若超过此值,则将两个节点进行合并
+        all_pattern: All pattern strings obtained by BSPR
+        hmax:Similarity threshold, if this value is exceeded during merge set optimization, the two nodes are merged
     Return:
-        reduced_pattern: 优化后得到的模式字符串
+        reduced_pattern: Optimised resulting pattern string
     """
     most_popular = '0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0'
     most_popular_p = []
@@ -126,7 +125,7 @@ def optimization(all_pattern, hmax=16.0):
             iid_p = "_".join(p.split("_")[16:])
             flag = False
             for mpp in most_popular_p:
-                if calSimilarity(iid_p, mpp) >= hmax:   #相似度阈值hmax
+                if calSimilarity(iid_p, mpp) >= hmax:   # Similarity Threshold hmax
                     flag = True
                     break
             if not flag: other_p.append(iid_p)
@@ -149,7 +148,7 @@ def optimization(all_pattern, hmax=16.0):
                         pass
                     else:
                         score = calSimilarity(choosed_p[i], choosed_p[j])
-                        if score >= hmax:  #相似度阈值
+                        if score >= hmax:  # Similarity Threshold
                             join(i,j,pre)
                             visited[j] = 1
                     pbar.update(1)
@@ -176,13 +175,13 @@ def optimization(all_pattern, hmax=16.0):
 
 def mppMiming(multi_level,algorithm="louvain",sst=1e7,hmin=14.0):
     """
-    无种子地址的most popular pattern挖掘
+    The most popular pattern mining without seed addresses
     Args:
-        algorithm: 采用的图发现算法:{infomap,gn,lpa,louvain}
-        sst: 过滤掉空间大小超过sst的模式字符串
-        hmin: 相似度阈值
+        algorithm: The graph discovery algorithm used:{infomap,gn,lpa,louvain}
+        sst: Filter out pattern strings whose space size exceeds sst
+        hmin: Similarity Threshold
     Return:
-        good_dis_p: 最后采用的模式库
+        good_dis_p: Final adopted pattern library
     """
     t = multi_level[['asn','bgp_prefix']].groupby('asn')['bgp_prefix'].apply(list).reset_index()
     t['prefix_count'] = t['bgp_prefix'].map(len)
@@ -214,24 +213,24 @@ def mppMiming(multi_level,algorithm="louvain",sst=1e7,hmin=14.0):
     return good_dis_p
     
 if __name__ == "__main__":
-    #超参数设置
+    # Hyperparameter setting
     hmax = 16.0
     hmin = 14.0
     algorithm = "louvain"
     sst = 1e7
-    #数据载入
+    # load data
     seeds_path = "data/seeds.csv"
     ipasn_path = "data/ipasn.dat"
     multi_level = dataloader(seeds_path, ipasn_path)
-    #叶子节点的pattern
+    # pattern of lead node
     all_pattern = peakProcess(multi_level)
-    #并查集优化后的pattern
+    # Pattern after parallel set optimization
     reduced_pattern = optimization(all_pattern,hmax=16.0) #hmax
-    #计算相似度矩阵，并进行存储
+    # Calculate the similarity matrix and store it
     matrix = genMatrix(reduced_pattern)
     with open("pk_data/matrix.pk","wb") as f:
         pickle.dump(matrix,f)
-    #无种子地址的most popular pattern挖掘, 得到最后采用的模式库，并输入到good_dis_p.pk模式库中
+    # Most popular pattern mining without seed addresses, to get the final pattern library used and input into the good_dis_p.pk pattern library
     good_dis_p = mppMiming(multi_level,algorithm="louvain",sst=1e7,hmin=14.0) #algorithm, sst, hmin
     
 

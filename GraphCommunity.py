@@ -1,5 +1,5 @@
 """
-    图社区发现算法
+    Graph community discovery algorithm
 """
 import networkx as nx
 from networkx.algorithms import community #  
@@ -12,10 +12,10 @@ import pickle
 def Matrix2Array(matrix,hmin):
     """
     Args:
-        matrix: 相似度矩阵
-        hmin: 相似度阈值
+        matrix: Similarity matrix
+        hmin: Similarity Threshold
     Return:
-        edge_list: 最后根据阈值hmin选取的无向边list, item: (i,j,matrix[i][j])
+        edge_list: Finally the list of undirected edges selected according to the threshold hmin, item: (i,j,matrix[i][j])
     """
     edge_list =  []
     time.sleep(0.5)
@@ -34,16 +34,16 @@ def do_infomap(G):
     import datetime
     import time
     exist_node = set()
-    infomapWrapper = infomap.Infomap("--two-level -f undirected") # infomap -h 命令行可以查看
+    infomapWrapper = infomap.Infomap("--two-level -f undirected") # infomap -h The command line allows you to view
     for u, v, w in G.edges(data=True):
         infomapWrapper.addLink(u,v,w['weight'])
         exist_node.add(u)
         exist_node.add(v)
     time.sleep(0.5)
 #     print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-    infomapWrapper.run() # 聚类运算
+    infomapWrapper.run() # Clustering operations
 #     print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-    # 有多少聚类数
+    # How many clusters are there
 #     print("Found {} modules with codelength: {}".format(infomapWrapper.numTopModules(), infomapWrapper.codelength))
     label2nodes = {}
     for node in infomapWrapper.nodes:
@@ -57,7 +57,7 @@ def do_infomap(G):
 #         node2label[node.node_id] = node.module_id
 #         count += 1
 #     print(count,len(node2label),len(exist_node))
-#     return node2label # 返回有社区的节点序号到标签的映射
+#     return node2label # Returns a mapping of node serial numbers to labels with communities
 
 #     # 
 #     class2ipv6 = {}
@@ -67,11 +67,11 @@ def do_infomap(G):
 #         class2ipv6[node.module_id].append(reduced_pattern[node.node_id])
 
 def do_gn(G,k=18):
-    # k 指定想要的社区
+    # k Specify the community you want
 #     G = nx.Graph()
 #     G.add_weighted_edges_from(Matrix2Array(matrix))
-    comp = community.girvan_newman(G) # GN算法
-    limited = itertools.takewhile(lambda c: len(c) <= k, comp) # 层次感迭代器
+    comp = community.girvan_newman(G) # GN Algorithms
+    limited = itertools.takewhile(lambda c: len(c) <= k, comp) # Hierarchical Iterator
     for communities in limited:
         b = list(sorted(c) for c in communities)
     return b
@@ -83,7 +83,7 @@ def do_lpa(G):
     return list(community.label_propagation_communities(G)) # Yields sets of the nodes in each community.
 
 def do_louvain(G):
-    # 安装 pip install python-louvain
+    # install pip install python-louvain
     # https://python-louvain.readthedocs.io/en/latest/api.html
     # G = nx.Graph()
     # G.add_weighted_edges_from(Matrix2Array(matrix))
@@ -99,13 +99,13 @@ def do_louvain(G):
 def GraphCommunityDiscoveryAlgorithm(pattern, matrix, algorithm="louvain", sst=1e7, hmin=14.0):
     """
     Args:
-        pattern: 模式字符串
-        matrix: 基于pattern计算得到的相似度矩阵
-        algorithm: 采用的图社区发现算法, {infomap,gn,lpa,louvain}
-        sst: 过滤掉空间大小超过sst的模式字符串
-        hmin: 相似度阈值
+        pattern: string of pattern
+        matrix: Similarity matrix based on pattern calculation
+        algorithm: The graph community discovery algorithm used, {infomap,gn,lpa,louvain}
+        sst: Filter out pattern strings whose space size exceeds sst
+        hmin: Similarity Threshold
     Return:
-        good_dis_p: 最后采用的模式库
+        good_dis_p: Final adopted pattern library
     """
     func = {"louvain":do_louvain,"gn":do_gn,"lpa":do_lpa,"infomap":do_infomap}
 
@@ -127,7 +127,7 @@ def GraphCommunityDiscoveryAlgorithm(pattern, matrix, algorithm="louvain", sst=1
             s = mergePattern(s,value[i])
         discovered_pattern.append((len(value),s))
     discovered_pattern = sorted(discovered_pattern,key=lambda x:x[0],reverse=True)
-    good_dis_p = [i[1] for i in discovered_pattern if calSpace(i[1]) < sst] #空间阈值
+    good_dis_p = [i[1] for i in discovered_pattern if calSpace(i[1]) < sst] # Spatial thresholds
 
     return good_dis_p
 
